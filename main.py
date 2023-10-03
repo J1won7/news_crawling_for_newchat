@@ -108,9 +108,8 @@ def crawling_naver_news():
                             news_id = url[43:53]
                             media = media_list[int(url[39:42])]
 
-                            news_data = {"news_id": news_id, "category": category_list[str(category)],
-                                         "title": title, "content": content, "summary": summary,
-                                         "media": media, "image": image, "time": write_time, "url": url}
+                            news_data = {"title": title, "content": content, "image": image,
+                                         "summary": summary, "date": write_time, "media": media, "url": url}
                             if len(content) > 512:
                                 save_news_in_mongodb(db, news_data)
 
@@ -121,7 +120,6 @@ def crawling_naver_news():
                 except Exception as e:
                     print(f"뉴스 리스트에서 에러 발생 : {e.args}")
                     time.sleep(DELAY_TIME)
-
 
 if __name__ == "__main__":
     crawling_naver_news()
