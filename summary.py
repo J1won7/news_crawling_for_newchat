@@ -23,16 +23,16 @@ def summarize_news(database, max_thread=3, chunk_size=10):
                 result.append({"content": result_cursor["content"], "_id": result_cursor["_id"]})
 
             if len(result) > chunk_size:
-                for i in range(0, min(len(result), chunk_size*max_thread), chunk_size):
-                    thread = threading.Thread(target=summarize_news_in_mongodb,
-                                              args=(collection, model, result[i:i+chunk_size]))
-                    threads.append(thread)
-                    thread.start()
-
-                # 모든 스레드가 종료될 때까지 대기
-                for thread in threads:
-                    thread.join()
-                    threads.remove(thread)
+                for i in range(0, len(result), chunk_size):
+                    if len(threads) < max_thread:
+                        thread = threading.Thread(target=summarize_news_in_mongodb,
+                                                  args=(collection, model, result[i:i+chunk_size]))
+                        threads.append(thread)
+                        thread.start()
+                    else:
+                        thread = threads[0]
+                        thread.join()
+                        threads.remove(thread)          
             else:
                 time.sleep(5)
         except Exception as e:

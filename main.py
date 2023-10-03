@@ -127,8 +127,5 @@ def crawling_naver_news():
 
 
 if __name__ == "__main__":
-    thread = threading.Thread(target=crawling_naver_news)
-    thread.start()
-    summarize_news(db, 3, 10)
-    thread.join()
-    db.close()
+    crawling_naver_news()
+
