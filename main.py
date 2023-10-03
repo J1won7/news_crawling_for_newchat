@@ -6,11 +6,11 @@ import pymongo.errors
 import requests
 from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
-from kobart import KoBart
+
+from summary import summarize_news
 
 # MongoDB에 연결
-client = pymongo.MongoClient(host='svc.sel3.cloudtype.app:32019', port=32019,
-                             username='admin', password='123')
+client = pymongo.MongoClient(host='mongodb://admin:123@svc.sel3.cloudtype.app:32019/?authMechanism=DEFAULT')
 database_name = "newchat"
 db = client[database_name]
 
@@ -126,54 +126,9 @@ def crawling_naver_news():
                     time.sleep(DELAY_TIME)
 
 
-def summarize_news(database):
-    # 요약 모델
-    model = KoBart()
-
-    collection = database["news"]
-    query = {"summary": None}
-    chunk_size = 10
-    max_thread = 3
-
-    # 쿼리를 사용하여 데이터 조회
-    while True:
-        # 스레드 리스트 초기화
-        threads = []
-        try:
-            result = []
-
-            result_cursor = collection.find(query)
-
-            for result_cursor in result_cursor:
-                result.append({"content": result_cursor["content"], "_id": result_cursor["_id"]})
-
-            if len(result) > chunk_size:
-                for i in range(0, min(len(result), chunk_size*max_thread), chunk_size):
-                    thread = threading.Thread(target=summarize_news_in_mongodb,
-                                              args=(collection, model, result[i:i+chunk_size]))
-                    threads.append(thread)
-                    thread.start()
-
-                # 모든 스레드가 종료될 때까지 대기
-                for thread in threads:
-                    thread.join()
-                    threads.remove(thread)
-            else:
-                time.sleep(5)
-        except Exception as e:
-            print(f"뉴스 요약 스레드에서 에러 발생 : {e.args}")
-            # 모든 스레드가 종료될 때까지 대기
-            for thread in threads:
-                thread.join()
-                threads.remove(thread)
-
-
-def summarize_news_in_mongodb(collection, model, results):
-    for result in results:
-        summary = model(result["content"])
-        collection.update_one({"_id": result["_id"]}, {"$set": {"summary": summary}})
-
-
 if __name__ == "__main__":
-    crawling_naver_news()
+    thread = threading.Thread(target=crawling_naver_news)
+    thread.start()
+    summarize_news(db, 3, 10)
+    thread.join()
     db.close()
