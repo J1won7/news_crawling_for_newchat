@@ -168,8 +168,6 @@ def summarize_news(database):
                 threads.remove(thread)
 
 
-
-
 def summarize_news_in_mongodb(collection, model, results):
     for result in results:
         summary = model(result["content"])
@@ -177,46 +175,5 @@ def summarize_news_in_mongodb(collection, model, results):
 
 
 if __name__ == "__main__":
-    thread = threading.Thread(target=crawling_naver_news)
-    thread.start()
-
-    summarize_news(db)
-
-    thread.join()
+    crawling_naver_news()
     db.close()
-
-'''
-def crawling_headline_news():
-    for category in range(100, 106):
-        urls = []
-        news_list_url = f"https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={category}"
-
-        response = requests.get(news_list_url, headers=head)
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        results = soup.select_one("#main_content > div > div._persist > div.section_headline > ul")
-
-        for i in range(1, 11):
-            try:
-                result = results.select_one(f"li:nth-child({i}) > div.sh_text > a")
-                if result is not None:
-                    urls.append(result.attrs['href'])
-            except Exception as e:
-                print(f"뉴스 리스트 크롤링 중 에러 발생 : {e}")
-        for url in urls:
-            _save_news_in_mongodb(mongodb, url, category, model)
-
-        print(f"카테고리[{category}] : 데이터 크롤링 완료")
-'''
-
-'''
-def get_summary_from_naver_news_url(url):
-    response = requests.get(url, headers=head)
-    data = json.loads(response.text)
-
-    # title = data['title']
-    summary = data['summary']
-    result_code = data['result_code']
-
-    return result_code, re.sub('<.*?>', ' ', summary)
-'''
