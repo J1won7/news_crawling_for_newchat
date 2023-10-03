@@ -1,4 +1,3 @@
-import threading
 import time
 import re
 import pymongo
@@ -6,8 +5,6 @@ import pymongo.errors
 import requests
 from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
-
-from summary import summarize_news
 
 # MongoDB에 연결
 client = pymongo.MongoClient(host='mongodb://admin:123@svc.sel3.cloudtype.app:32019/?authMechanism=DEFAULT')
