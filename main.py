@@ -174,7 +174,7 @@ def crawling_latest_naver_news():
                                     print(news_data)
                             except Exception as e:
                                 time.sleep(DELAY_TIME)
-                                print(f"뉴스 페이지에서 에러 발생 : {e}")
+                                print(f"뉴스 페이지에서 에러 발생: {e}")
 
 
                 except Exception as e:
