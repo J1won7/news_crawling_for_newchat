@@ -121,6 +121,70 @@ def crawling_naver_news():
                     print(f"뉴스 리스트에서 에러 발생 : {e.args}")
                     time.sleep(DELAY_TIME)
 
+
+def crawling_latest_naver_news():
+    while True:
+
+
+        toDay = datetime.today().strftime("%Y%m%d")
+        toDayNewsList = []
+
+        while True:
+            # 100 : 정치, 101 : 경제, 102 : 사회, 103: 생활/문화, 104 : 세계, 105 : IT/과학
+            for category in range(100, 106):
+                page = -1
+                isNext = True
+                try:
+                    while isNext:
+                        time.sleep(DELAY_TIME)
+                        page += 1
+                        curNewsList = []
+
+                        newsListUrl = f"https://news.naver.com/main/list.naver?mode=LSD&mid=shm&listType=title&sid1={category}&date={toDay}&page={page}"
+                        response = requests.get(newsListUrl, headers=head)
+                        soup = BeautifulSoup(response.text, 'html.parser')
+
+                        cur_page = soup.find_all("ul", class_="type02")
+
+                        for div in cur_page:
+                            links = div.find_all("a", href=True)
+                            for link in links:
+                                newsUrl = link['href']
+
+                                if newsUrl not in toDayNewsList:
+                                    curNewsList.append(newsUrl)
+                                    toDayNewsList.append(newsUrl)
+                                else:
+                                    isNext = False
+
+                        for url in set(curNewsList):
+                            try:
+                                time.sleep(DELAY_TIME)
+                                title, content, image, write_time = _get_content_from_naver_news_url(url)
+
+                                summary = None
+
+                                news_id = url[43:53]
+                                media = media_list[int(url[39:42])]
+
+                                news_data = {"_id": news_id, "title": title, "content": content, "image": image,
+                                             "summary": summary, "date": write_time, "media": media, "url": url}
+                                if len(content) > 512:
+                                    #save_news_in_mongodb(db, news_data)
+                                    print(news_data)
+                            except Exception as e:
+                                time.sleep(DELAY_TIME)
+                                print(f"뉴스 페이지에서 에러 발생 : {e}")
+
+
+                except Exception as e:
+                    time.sleep(DELAY_TIME)
+                    print(f"뉴스 리스트에서 에러 발생 : {e.args}")
+
+            if toDay != datetime.today().strftime("%Y%m%d"):
+                break
+
+
 if __name__ == "__main__":
-    crawling_naver_news()
+    crawling_latest_naver_news()
 
