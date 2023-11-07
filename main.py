@@ -170,8 +170,7 @@ def crawling_latest_naver_news():
                                 news_data = {"_id": news_id, "title": title, "content": content, "image": image,
                                              "summary": summary, "date": write_time, "media": media, "url": url}
                                 if len(content) > 512:
-                                    #save_news_in_mongodb(db, news_data)
-                                    print(news_data)
+                                    save_news_in_mongodb(db, news_data)
                             except Exception as e:
                                 time.sleep(DELAY_TIME)
                                 print(f"뉴스 페이지에서 에러 발생: {e}")
