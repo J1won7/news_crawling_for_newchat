@@ -29,10 +29,10 @@ head = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537
 DELAY_TIME = 0.5
 
 
-def save_news_in_mongodb(database, news_data):
+def save_news_in_mongodb(database, news_datas):
     try:
         collection = database["news"]
-        collection.insert_one(news_data)
+        collection.insert_many(news_datas, ordered=False)
     except pymongo.errors.DuplicateKeyError:
         print("중복된 기사가 크롤링 되었습니다.")
     except Exception as e:
@@ -75,6 +75,7 @@ def _get_content_from_naver_news_url(url):
 
 def crawling_naver_news():
     while True:
+        time.sleep(DELAY_TIME)
         start_day = load_date_from_mongodb(db)
         print(start_day, "크롤링 시작")
 
@@ -124,12 +125,11 @@ def crawling_naver_news():
 
 def crawling_latest_naver_news():
     while True:
-
-
         toDay = datetime.today().strftime("%Y%m%d")
         toDayNewsList = []
 
         while True:
+            news_datas = []
             # 100 : 정치, 101 : 경제, 102 : 사회, 103: 생활/문화, 104 : 세계, 105 : IT/과학
             for category in range(100, 106):
                 page = -1
@@ -162,23 +162,24 @@ def crawling_latest_naver_news():
                                 time.sleep(DELAY_TIME)
                                 title, content, image, write_time = _get_content_from_naver_news_url(url)
 
-                                summary = None
-
-                                news_id = url[43:53]
-                                media = media_list[int(url[39:42])]
-
-                                news_data = {"_id": news_id, "title": title, "content": content, "image": image,
-                                             "summary": summary, "date": write_time, "media": media, "url": url}
+                                news_data = {"_id": url[43:53], "title": title, "content": content, "image": image,
+                                             "summary": None, "date": write_time, "media": media_list[int(url[39:42])], "url": url}
                                 if len(content) > 512:
-                                    save_news_in_mongodb(db, news_data)
+                                    news_datas.append(news_data)
                             except Exception as e:
                                 time.sleep(DELAY_TIME)
                                 print(f"뉴스 페이지에서 에러 발생: {e}")
 
-
                 except Exception as e:
                     time.sleep(DELAY_TIME)
                     print(f"뉴스 리스트에서 에러 발생 : {e.args}")
+
+            for _ in range(5):
+                try:
+                    save_news_in_mongodb(db, news_datas)
+                    break
+                except Exception as e:
+                    print(f"뉴스 저장 중 에러 발생 : {e.args}")
 
             if toDay != datetime.today().strftime("%Y%m%d"):
                 break
@@ -186,4 +187,3 @@ def crawling_latest_naver_news():
 
 if __name__ == "__main__":
     crawling_latest_naver_news()
-
