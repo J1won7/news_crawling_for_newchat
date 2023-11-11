@@ -30,13 +30,15 @@ DELAY_TIME = 0.5
 
 
 def save_news_in_mongodb(database, news_datas):
-    try:
-        collection = database["news"]
-        collection.insert_many(news_datas, ordered=False)
-    except pymongo.errors.DuplicateKeyError:
-        print("중복된 기사가 크롤링 되었습니다.")
-    except Exception as e:
-        print(f"데이터 베이스 저장 중 에러 발생 : {e}")
+    for _ in range(5):
+        try:
+            collection = database["news"]
+            collection.insert_many(news_datas, ordered=False)
+            break
+        except pymongo.errors.DuplicateKeyError as e:
+            print(f"중복된 기사가 크롤링 되었습니다. : {e}")
+        except Exception as e:
+            print(f"데이터 베이스 저장 중 에러 발생 : {e}")
 
 
 def load_date_from_mongodb(database):
