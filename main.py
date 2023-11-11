@@ -176,12 +176,9 @@ def crawling_latest_naver_news():
                     time.sleep(DELAY_TIME)
                     print(f"뉴스 리스트에서 에러 발생 : {e.args}")
 
-            for _ in range(5):
-                try:
-                    save_news_in_mongodb(db, news_datas)
-                    break
-                except Exception as e:
-                    print(f"뉴스 저장 중 에러 발생 : {e.args}")
+            if len(news_datas) > 0:
+                save_news_in_mongodb(db, news_datas)
+                break
 
             if toDay != datetime.today().strftime("%Y%m%d"):
                 break
